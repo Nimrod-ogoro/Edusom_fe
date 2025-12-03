@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { useVoiceInteraction } from '../../../hooks/useVoiceInteraction';
 
 const AITutorChat = () => {
   const [messages, setMessages] = useState([
@@ -10,6 +11,20 @@ const AITutorChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Voice interaction hook
+  const {
+    isListening,
+    isSpeaking,
+    isSupported,
+    transcript,
+    error: voiceError,
+    autoSpeak,
+    setAutoSpeak,
+    toggleListening,
+    speak,
+    stopSpeaking,
+  } = useVoiceInteraction();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -17,6 +32,36 @@ const AITutorChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Handle voice transcript - auto-send when recognized
+  useEffect(() => {
+    if (transcript && !isListening) {
+      setInput(transcript);
+      // Auto-submit the voice transcript
+      setTimeout(() => {
+        const userMessage = { id: Date.now(), text: transcript, sender: 'user' };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsTyping(true);
+
+        // Simulate AI response
+        setTimeout(() => {
+          const aiMessage = {
+            id: Date.now() + 1,
+            text: "That's a great question! The Second Law of Thermodynamics states that the total entropy of an isolated system can never decrease over time. Think of it like a messy room - it naturally gets messier unless you put energy into cleaning it!",
+            sender: 'ai'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setIsTyping(false);
+
+          // Speak the AI response if auto-speak is enabled
+          if (autoSpeak) {
+            speak(aiMessage.text);
+          }
+        }, 2000);
+      }, 100);
+    }
+  }, [transcript, isListening, autoSpeak, speak]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -36,6 +81,11 @@ const AITutorChat = () => {
       };
       setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
+
+      // Speak the AI response if auto-speak is enabled
+      if (autoSpeak) {
+        speak(aiMessage.text);
+      }
     }, 2000);
   };
 
@@ -54,9 +104,26 @@ const AITutorChat = () => {
             </div>
           </div>
         </div>
-        <button className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-          <Sparkles size={18} />
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Auto-speak toggle */}
+          <button
+            onClick={() => {
+              setAutoSpeak(!autoSpeak);
+              if (!autoSpeak && isSpeaking) stopSpeaking();
+            }}
+            className={`p-2 rounded-lg transition-colors ${autoSpeak
+                ? 'text-primary-600 hover:bg-primary-50'
+                : 'text-slate-400 hover:bg-slate-50'
+              }`}
+            title={autoSpeak ? 'Auto-speak enabled' : 'Auto-speak disabled'}
+          >
+            {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+
+          <button className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+            <Sparkles size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -74,8 +141,8 @@ const AITutorChat = () => {
                   {msg.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
                 </div>
                 <div className={`p-3 rounded-2xl text-sm ${msg.sender === 'user'
-                    ? 'bg-primary-600 text-white rounded-br-none'
-                    : 'bg-slate-100 text-slate-800 rounded-bl-none'
+                  ? 'bg-primary-600 text-white rounded-br-none'
+                  : 'bg-slate-100 text-slate-800 rounded-bl-none'
                   }`}>
                   {msg.text}
                 </div>
@@ -107,18 +174,70 @@ const AITutorChat = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Voice status indicator */}
+      {(isListening || isSpeaking) && (
+        <div className="px-4 py-2 bg-gradient-to-r from-primary-50 to-transparent border-t border-slate-100">
+          <div className="flex items-center space-x-2">
+            {isListening && (
+              <>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="w-2 h-2 bg-red-500 rounded-full"
+                />
+                <span className="text-sm text-slate-600 font-medium">Listening...</span>
+              </>
+            )}
+            {isSpeaking && (
+              <>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="w-2 h-2 bg-purple-500 rounded-full"
+                />
+                <span className="text-sm text-slate-600 font-medium">Speaking...</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSend} className="p-4 border-t border-slate-100">
+        {voiceError && isSupported && (
+          <div className="mb-2 text-xs text-red-500">
+            Voice error: {voiceError}
+          </div>
+        )}
+
         <div className="flex items-center space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question..."
+            placeholder={isListening ? "Listening..." : "Ask a question or use voice..."}
             className="flex-1 p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+            disabled={isListening}
           />
+
+          {/* Microphone button */}
+          {isSupported && (
+            <motion.button
+              type="button"
+              onClick={toggleListening}
+              whileTap={{ scale: 0.95 }}
+              className={`p-3 rounded-xl transition-all duration-200 ${isListening
+                  ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              title={isListening ? 'Stop listening' : 'Start voice input'}
+            >
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </motion.button>
+          )}
+
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isListening}
             className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={18} />

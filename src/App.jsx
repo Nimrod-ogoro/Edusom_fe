@@ -1,17 +1,19 @@
-
+import { Routes, Route, Navigate } from 'react-router-dom';
+import TeacherDashboard from './Dashboards/Teachers_Dashboard/Teacher_Dashboard.jsx';
+import StudentPage from './Dashboards/Student_Dashboard/SD_Homepage.jsx';
+import ParentPage from './Dashboards/Parents_Dashboard/PD_Homepage.jsx';
 import './App.css'
-import SD_Homepage from './Dashboards/Student_Dashboard/SD_Homepage'
 
 function App() {
-
-
   return (
-    <>
-    <div className="App">
-      <SD_Homepage/>
-      </div>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<Navigate to="/student" />} />
+      <Route path="/teacher/*" element={<TeacherDashboard />} />
+      <Route path="/student/*" element={<StudentPage />} />
+      <Route path="/parent/*" element={<ParentPage />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
+

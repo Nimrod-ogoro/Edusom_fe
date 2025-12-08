@@ -30,6 +30,7 @@ function Upload() {
       });
 
       setMessage("✅ Files uploaded successfully!");
+      setFiles([]);
     } catch (error) {
       setMessage("❌ Upload failed. Check server connection.");
     }
@@ -39,6 +40,8 @@ function Upload() {
     <div>
       <h2>📤 Upload CATs / Exams</h2>
       <p>Select one or more files to upload. Max size: 500MB</p>
+
+      {/* File Upload */}
       <input
         type="file"
         multiple
@@ -50,6 +53,26 @@ function Upload() {
           backgroundColor: '#fff',
         }}
       />
+
+      {/* Scan Section */}
+      <div style={{ marginTop: '1.5rem' }}>
+        <h3>📷 Scan Physical CATs</h3>
+        <p>Use your device camera to capture and upload exams.</p>
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"   // opens back camera on mobile
+          onChange={handleChange}
+          style={{
+            padding: '0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            backgroundColor: '#fff',
+          }}
+        />
+      </div>
+
+      {/* File List */}
       {files.length > 0 && (
         <ul style={{ marginTop: '1rem', paddingLeft: '1rem' }}>
           {files.map((file, index) => (
@@ -57,6 +80,8 @@ function Upload() {
           ))}
         </ul>
       )}
+
+      {/* Submit Button */}
       <button
         onClick={handleUpload}
         style={{
@@ -71,6 +96,8 @@ function Upload() {
       >
         Submit
       </button>
+
+      {/* Status Message */}
       {message && (
         <p style={{ marginTop: '1rem', color: '#0984e3' }}>
           {message}

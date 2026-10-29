@@ -1,68 +1,56 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --page: 251 250 247;
+    --panel: 243 241 234;
+    --border: 231 228 220;
+    --ink: 27 31 59;
+    --subtle: 91 96 114;
+    --card: 255 255 255;
   }
-  a:hover {
-    color: #747bff;
+  /* Added to the dashboard root when dark mode is on. */
+  .dark {
+    --page: 15 22 32;
+    --panel: 24 34 48;
+    --border: 40 54 72;
+    --ink: 232 240 240;
+    --subtle: 150 168 176;
+    --card: 22 31 44;
   }
-  button {
-    background-color: #f9f9f9;
+  html {
+    scroll-behavior: smooth;
   }
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+/* Dark mode: remap the plain light utilities the older pages still use. */
+.dark .bg-white { background-color: rgb(var(--card)); }
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover { background-color: rgb(var(--panel)); }
+.dark .border,
+.dark .border-slate-100,
+.dark .border-slate-200 { border-color: rgb(var(--border)); }
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-slate-700 { color: rgb(var(--subtle)); }
+.dark .text-slate-800,
+.dark .text-slate-900 { color: rgb(var(--ink)); }
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgb(var(--panel));
+  color: rgb(var(--ink));
+  border-color: rgb(var(--border));
 }
